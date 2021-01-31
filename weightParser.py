@@ -17,6 +17,41 @@ try:
 except UnicodeDecodeError:
     print("ERROR AT: " + str(counter) + str(lines))
 
-print(vocabList[-1])
+vocabFile.close()
+
+#Below code retrieves the weight of each word from the weightFile.
+weightFile = open(basePath + weightFile, "r", encoding = "utf-8")
+unalteredWordWeightMap = open("unalteredWordWeightMap.txt", "w", encoding="utf-8")
+weightCounter = 0
+
+#This dictionary maps each word with its perceived weight value
+vocabWeight = dict()
+testCounter = 0
+for weight in weightFile:
+  vocabWeight[vocabList[weightCounter]] = (float(weight.strip("\n")))
+  unalteredWordWeightMap.write(vocabList[weightCounter] + " : " + str(vocabWeight[vocabList[weightCounter]]) + "\n")
+  weightCounter += 1
+
+
+weightFile.close()
+unalteredWordWeightMap.close()
+
+#Two dictionaries that have the vocabWeight sorted from greatest to lowest, and lowest to greatest respectively.
+greatestWeightDict = sorted(vocabWeight.items(), key = lambda x: x[1], reverse=True)
+lowestWeightDict = sorted(vocabWeight.items(), key = lambda x: x[1])
+
+greatestWordWeightMap = open("greatestWordWeightMap.txt", "w", encoding= "utf-8")
+
+for word in greatestWeightDict:
+    greatestWordWeightMap.write(word[0] + " : " + str(word[1]) + "\n")
+greatestWordWeightMap.close()
+
+lowestWordWeightMap = open("lowestWordWeightMap.txt", "w", encoding="utf-8")
+for word in lowestWeightDict:
+    lowestWordWeightMap.write(word[0] + " : " + str(word[1]) + "\n")
+lowestWordWeightMap.close()
+
+
 #print(vocabList)
-#print("LENGTH OF LIST IS: " + str(len(vocabList)))
+#print(greatestWeightDict)
+#print(lowestWeightDict)
