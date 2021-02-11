@@ -6,26 +6,57 @@ import os
 import sys
 import codecs
 
-
-## Helper Function - Not used directly
-#Opens files from specified file path (positive or negative) training data. Specify the directory in filePath, and the name of the file in fileName. Example function call below.
-#checkReviewFile(positiveTrainSetPath, "0_9.txt") --- Will travel to the directory set in variable positiveTrainSetPath, and open file named 0_9.txt
-def checkReviewFile(filePath: str, fileName: str) -> None:
-    with open(os.path.join(filePath, fileName), "r") as reviewFile:
-        fileContents = reviewFile.read()
-
 #Needed to adjust encoding to avoid errors when using vocabWeightDict. 
 try:
     sys.stdin = codecs.getreader("utf-8")(sys.stdin.detach())
-    sys.stdout = codecs.getwriter("utf-8")(sys.stdout.detach())
+    #sys.stdout = codecs.getwriter("utf-8")(sys.stdout.detach())
 except:
     pass
 
-#Paths relative to Google Colab setup
-trainDataBOWFile = os.getcwd() + "/IMDB_ClassificationAndPrediction/IMDB_Data/train/labeledBow.feat"
-vocabWeightFile = os.getcwd() + "/IMDB_ClassificationAndPrediction/unalteredWordWeightMap.txt"
-positiveTrainSetPath = os.getcwd() + "/IMDB_ClassificationAndPrediction/IMDB_Data/train/pos"
-negativeTrainSetPath = os.getcwd() + "/IMDB_ClassificationAndPrediction/IMDB_Data/train/neg"
+#Creates a list that "summarizes" each document. For right now only the documents in the positive directory are done which is 12500 files.
+#We put results in documentInfoList, the contents are described below.
+# POSITIVE REVIEWS: 0:12500, NEGATIVE REVIEWS: 12500:25000
+def createInfoList(infoFile):
+  fileNum = 0
+  documentInfoList = []
+  stopWords = set(stopwords.words("english"))
+  trainBOWContents = open(infoFile, "r", encoding="UTF-8")
+
+  #Below syntax may be confusing. I will explain it here.
+  # vocabList is the List that contains a list of all words that occur in the reivews, in the same order as given in the files. For examples vocabList[0] is "the" 
+  # tempList is the mapping from the BOW that associated Word Index : Word Occurrence. For example 0 : 9 means the word at index 0 of vocabList occurs 9 times in that review.
+  # Therefore, when we do vocabWeightDict[vocabList[int(tempList[0])]] we are doing the following:
+    # Assuming tempList is [0, 9]. Then vocabList[int(tempList[0])] is simply vocabList[0] which is the word "the".
+    # Then vocabWeightDict[vocabList[int(tempList)]] is just doing vocabWeightDict["the"] to get the corresponding weight. We then multiply this by tempList[1] which is the occurence count.
+
+  ##documentInfoList contains the following information in the following order: 
+    #(Number of File being used, Actual Rating of the File, Weight when counting all words, Weight when excluding stop words.)
+  for lines in trainBOWContents:
+    totalWeight = 0
+    excludeStopWordsWeight = 0
+    splitText = lines.split()
+    for i in range(len(splitText)):
+      if i == 0:
+        pass
+      else:
+        tempList = splitText[i].split(":")
+        totalWeight += float(vocabWeightDict[vocabList[int(tempList[0])]]) * float(tempList[1])
+        if vocabList[int(tempList[0])] not in stopWords:
+          excludeStopWordsWeight += float(vocabWeightDict[vocabList[int(tempList[0])]]) * float(tempList[1])
+    documentInfoList.append( (fileNum, eval(splitText[0]), totalWeight, excludeStopWordsWeight))
+    fileNum +=1
+    #Increase to 25000 to see both positive and negative files.
+    if fileNum == 25000:
+      break
+  trainBOWContents.close()
+  return documentInfoList
+
+  
+#Paths relative to Google Colab setup. May need to be adjusted for local machine.
+trainDataBOWFile = os.getcwd() + "/IMDB_Data/train/labeledBow.feat"
+vocabWeightFile = os.getcwd() + "/unalteredWordWeightMap.txt"
+positiveTrainSetPath = os.getcwd() + "/IMDB_Data/train/pos"
+negativeTrainSetPath = os.getcwd() + "/IMDB_Data/train/neg"
 
 
 #Open and creates a dict from existing vocabWeightFile. This is used to create and organize data regarding the reviews. 
@@ -37,45 +68,9 @@ for lines in vocabWeightFile:
 vocabList = list(vocabWeightDict)
 vocabWeightFile.close()
 
-
-#Creates a list that "summarizes" each document. For right now only the documents in the positive directory are done which is 12500 files.
-#We put results in documentInfoList, the contents are described below.
-# POSITIVE REVIEWS: 0:12500, NEGATIVE REVIEWS: 12500:25000
-fileNum = 0
-documentInfoList = []
-stopWords = set(stopwords.words("english"))
-trainBOWContents = open(trainDataBOWFile, "r", encoding="UTF-8")
-
-#Below syntax may be confusing. I will explain it here.
-# vocabList is the List that contains a list of all words that occur in the reivews, in the same order as given in the files. For examples vocabList[0] is "the" 
-# tempList is the mapping from the BOW that associated Word Index : Word Occurrence. For example 0 : 9 means the word at index 0 of vocabList occurs 9 times in that review.
-# Therefore, when we do vocabWeightDict[vocabList[int(tempList[0])]] we are doing the following:
-  # Assuming tempList is [0, 9]. Then vocabList[int(tempList[0])] is simply vocabList[0] which is the word "the".
-  # Then vocabWeightDict[vocabList[int(tempList)]] is just doing vocabWeightDict["the"] to get the corresponding weight. We then multiply this by tempList[1] which is the occurence count.
-
-##documentInfoList contains the following information in the following order: 
-  #(Number of File being used, Actual Rating of the File, Weight when counting all words, Weight when excluding stop words.)
-for lines in trainBOWContents:
-  totalWeight = 0
-  excludeStopWordsWeight = 0
-  splitText = lines.split()
-  for i in range(len(splitText)):
-    if i == 0:
-      pass
-    else:
-      tempList = splitText[i].split(":")
-      totalWeight += float(vocabWeightDict[vocabList[int(tempList[0])]]) * float(tempList[1])
-      if vocabList[int(tempList[0])] not in stopWords:
-        excludeStopWordsWeight += float(vocabWeightDict[vocabList[int(tempList[0])]]) * float(tempList[1])
-  documentInfoList.append( (fileNum, eval(splitText[0]), totalWeight, excludeStopWordsWeight))
-  fileNum +=1
-  #Increase to 25000 to see both positive and negative files.
-  if fileNum == 25000:
-    break
-trainBOWContents.close()
-
 #Uncomment to view what the document info list looks like.
-#print(documentInfoList)
+documentInfoList = createInfoList(trainDataBOWFile)
+print(len(documentInfoList))
 
 ## Using this part for data that might be useful on the report/training
 
@@ -103,3 +98,12 @@ RatingWeightDictWithStopWords = defaultdict(list)
 
 
 # documentInfoList index 0 is (0, 9, 15.92304840444889, 16.36440210426261): (file number, rating, total weight with stop words, weight without stop words) 
+
+
+## Helper Function - Not used directly
+#Opens files from specified file path (positive or negative) training data. Specify the directory in filePath, and the name of the file in fileName. Example function call below.
+#checkReviewFile(positiveTrainSetPath, "0_9.txt") --- Will travel to the directory set in variable positiveTrainSetPath, and open file named 0_9.txt
+
+def checkReviewFile(filePath: str, fileName: str) -> None:
+    with open(os.path.join(filePath, fileName), "r") as reviewFile:
+        fileContents = reviewFile.read()
