@@ -29,8 +29,53 @@ students Siddharth Bhansali, John Nguyen, and Joshua Widjaja under the supervisi
 Colab Files Folder - Contains both the demonstration and actual ipynb files as well as an HTML version of both.
 
 Demonstration Files Folder - Folder contains pretrained models and data. These are used in a shorter simplified
-ipynb file that is meant to be run as a demonstration/example within Google Colab.
+ipynb file that is meant to be run as a demonstration/example within Google Colab. The contents are described in further detail below
+
+	#------------Joblib Files------------#
+	classification_KNN.joblib - Exported model of KNN classification only classifying positive and negative.
+
+	classification_KNN_Neutral.joblib - Exported model of KNN classifcation classifying positive, negative, and neutral
+
+	classification_LogisticClassifier.joblib - Exported model of Logistic classification classifying positive and negative
+
+	classification_wordToVecLogistic.joblib - Exported model of the the WordToVec classification classifying only positive and negative
+
+	#------------NPZ Files------------#
+	demonstrationData.npz - Exported data used for non Word2Vec models.
+	
+	wordToVecDemonstration.npz - Exported data used for Word2Vec models
+
+	#------------PT (Pytorch) Files------------#
+	score_prediction.pt - Exported model used for score prediction
+
 
 IMDB_Data Folder - Folder contains the IMDB dataset and all of its contents. This data is preprocessed and used 
 in the primary ipynb file.
+
+Other Files - Other files currently not located in any folder are gone into detail below.
+
+#------------Python Files------------#
+
+retrieveReviewWeights.py - This file uses the created text files (listed here) to create the documentInfoList
+that we primarily use for training our models and also contains some functions that helped us gather information
+regarding the data. The proper code is included in the Google Colab file.
+
+simpleLearningModel.py - We used this to get some understanding of SkLearn and Pytorch for creating models.
+This code is not included in the Google Colab and was only used for learning purposes, not for actual training/testing.
+
+weightParser.py - This script uses our given data from our dataset, combines it, and outputs it to a file in a format very easy to read
+and utilize for preprocessing. The form is of WORD : WEIGHT, and this code is included in the Google Colab file.
+
+wordToVecImplement.py - This script parses through every labeled training review, and outputs contents to a file with the format of
+REVIEWNUM : [WORDS] where the words are in order of occurrence. We use this to preprocess and train our Word2Vec Model imported
+from Gensim. This code is included in the Google Colab file.
+
+#------------Text Files------------#
+greatestWordWeightMap.txt - Output of weightParser.py, orders words based on weight in descending order.
+
+lowestWordWeightMap.txt - Output of weightParser.py, orders words based on weight in ascending order.
+
+reviewNumberWordMap.txt - Output of wordToVecImplement.py, each line is one review where the REVIEWNUM : [CONTAINED WORDS]
+
+unalteredWordWeightMap.txt - Output of weightParser.py, has the default ordering of the words based on weight.
 
